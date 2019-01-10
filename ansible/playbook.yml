@@ -1,0 +1,285 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Replace LABEL=cloudimg-rootfs with (hd0) to fix apt # TODO use replace module instead of sed
+      command: sed -i 's/groot=LABEL=cloudimg-rootfs/groot=(hd0)/g' /boot/grub/menu.lst
+    - name: regenerate menu.lst to reflect changes
+      command: update-grub-legacy-ec2
+    - name: Install Java state=present update_cache=yes
+      apt: 
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - openjdk-8-jdk
+          - ntp
+
+- hosts: bastion
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Install tinyproxy
+      apt:
+        name: tinyproxy
+        update_cache: yes
+    - name: Create tinyproxy config from template
+      template: 
+        src: templates/tinyproxy.conf.j2
+        dest: /etc/tinyproxy/tinyproxy.conf
+        owner: root
+        group: root
+        mode: 0644
+    - name: Copy filter file for tinyproxy
+      copy:
+        src: files/filter
+        dest: /etc/tinyproxy/
+        backup: yes
+        owner: root
+        group: root
+        mode: 0644
+    - name: Enable tinyproxy
+      systemd:
+        enabled: yes
+        name: tinyproxy
+        state: restarted
+    - name: Allow ssh through firewall
+      ufw:
+        rule: allow
+        name: OpenSSH
+    - name: Allow tinyproxy through firewall
+      ufw:
+        rule: allow
+        src: "{{ private_subnet }}"
+        port: 8888
+        direction: in
+        proto: any
+        state: enabled
+
+- hosts: jg-cass
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Create apt proxy config from template
+      template: 
+        src: templates/proxy.conf.j2
+        dest: /etc/apt/apt.conf.d/proxy.conf
+        owner: root
+        group: root
+        mode: 0644
+    - name : Add the key for the cassandra debian repo
+      apt_key:
+        data: "{{ lookup('file', 'cassandra.asc') }}"
+    - name: add cassandra debian repository
+      apt_repository: 
+        repo: 'deb http://www.apache.org/dist/cassandra/debian 311x main'
+        state: present
+    - name: install cassandra
+      apt:
+        name: cassandra
+        state: present
+        update_cache: yes
+    - name: Create Cassandra config from template
+      template: 
+        src: templates/cassandra.yaml.j2
+        dest: /etc/cassandra/cassandra.yaml
+        owner: root
+        group: root
+        mode: 0644
+        backup: yes
+    - name: Stop Cassandra
+      systemd:
+        name: cassandra
+        state: stopped
+    - name: Clear out Cassandra data
+      command: rm -rf /var/lib/cassandra/data/system/*    
+    - name: Clean out unused file
+      file: 
+        state: absent
+        path: /etc/cassandra/cassandra-topology.properties    
+    - name: Enable Cassandra
+      systemd:
+        enabled: yes
+        name: cassandra
+        state: started
+    - name: Allow ssh through firewall
+      ufw:
+        rule: allow
+        name: OpenSSH
+    - name: Allow Cassandra through firewall
+      ufw: direction=in proto=tcp rule=allow port={{ item.port }}
+      with_items:
+        - { port: 7000}
+        - { port: 7001}
+        - { port: 7199}
+        - { port: 9042}
+        - { port: 9160}
+        - { port: 9142}
+#      notify:
+#        - restart ufw
+    - name: Enable ufw
+      ufw:
+        state: enabled
+
+# 7000  Cassandra inter-node cluster communication.
+# 7001  Cassandra SSL inter-node cluster communication.
+# 7199  Cassandra JMX monitoring port.
+# Cassandra client ports
+# Port number.  Description
+# 9042  Cassandra client port.
+# 9160  Cassandra client port (Thrift).
+# 9142  Default for native_transport_port_ssl, useful when both encrypted and unencrypted connections are required
+
+# - name: Configure ufw defaults
+#   ufw: direction={{ item.direction }} policy={{ item.policy }}
+#   with_items:
+#     - { direction: 'incoming', policy: 'deny' }
+#     - { direction: 'outgoing', policy: 'allow' }
+#   notify:
+#     - restart ufw
+
+# - name: Configure ufw rules
+#   ufw: rule={{ item.rule }} port={{ item.port }} proto={{ item.proto }}
+#   with_items:
+#     - { rule: 'limit', port: '{{ ssh_port | default("22") }}', proto: 'tcp' }
+#     - { rule: 'allow', port: '80', proto: 'tcp' }
+#     - { rule: 'allow', port: '443', proto: 'tcp' }
+#   notify:
+#     - restart ufw
+
+# - name: Enable ufw logging
+#   ufw: logging=on
+#   notify:
+#     - restart ufw
+
+# - name: Enable ufw
+#   ufw: state=enable
+
+# ufw allow proto tcp from [external_node_ip_address] to any port 7000,9042 comment "Cassandra TCP"
+
+# TODO run and tweak this install. Add variables for node names.
+# - hosts: jg-es-master
+#   roles:
+#     - role: elastic.elasticsearch
+#   vars:
+#     es_instance_name: "node1"
+#     es_heap_size: "1g"
+#     es_config:
+#       cluster.name: "janusgraph"
+#       discovery.zen.ping.unicast.hosts: "{{ ansible_host }}:9300"
+#       http.port: 9200
+#       transport.tcp.port: 9300
+#       node.data: false
+#       node.master: true
+#       bootstrap.memory_lock: false
+#     es_scripts: false
+#     es_templates: false
+#     es_version_lock: false
+#     ansible_user: ubuntu
+
+- hosts: jg-es
+  become: yes
+  become_user: root
+  become_method: sudo
+  environment:
+    https_proxy: "http://{{ bastion_ip }}:8888"
+    http_proxy: "http://{{ bastion_ip }}:8888"
+  tasks:
+    - name: Create apt proxy config from template
+      template: 
+        src: templates/proxy.conf.j2
+        dest: /etc/apt/apt.conf.d/proxy.conf
+        owner: root
+        group: root
+        mode: 0644
+  roles:
+    - role: elastic.elasticsearch
+  vars:
+    es_instance_name: "node1"
+    es_data_dirs:
+      - "/opt/elasticsearch/data"
+    es_log_dir: "/opt/elasticsearch/logs"
+    es_config:
+      network.host: 0.0.0.0
+      node.name: "node1"
+      cluster.name: "janusgraph"
+      discovery.zen.ping.unicast.hosts: "{{ es_master_ip }}:9301"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: true
+      node.master: true
+      bootstrap.memory_lock: false
+    es_scripts: false
+    es_templates: false
+    es_version_lock: false
+    es_api_port: 9200
+
+
+- hosts: jg-gremlin
+  become: yes
+  become_user: root
+  become_method: sudo
+  environment:
+    https_proxy: "http://{{ bastion_ip }}:8888"
+  tasks:
+    - name: Install unzip
+      apt:
+        name: unzip
+        update_cache: yes
+    - name: Copy JanusGraph zip
+      get_url:
+        url: "http://github.com/JanusGraph/janusgraph/releases/download/v0.3.1/janusgraph-0.3.1-hadoop2.zip"
+        dest: "/tmp/janusgraph-0.3.1-hadoop2.zip"
+        mode: 0644
+        use_proxy: yes
+    - name: check if Janusgraph has already been unzipped
+      command: "ls /opt/janusgraph"
+      register: find_janusgraph_folder
+      ignore_errors: True
+    - name: Download and Unzip JanusGraph
+      unarchive:
+        src: "/tmp/janusgraph-0.3.1-hadoop2.zip"
+        dest: /opt/
+        remote_src: yes
+      when: find_janusgraph_folder is failed
+    - name: rename janusgraph folder
+      command: mv /opt/janusgraph-0.3.1-hadoop2 /opt/janusgraph
+      when: find_janusgraph_folder is failed
+    # - name: Copy over properties file
+    #   copy:
+    #     src: files/janusgraph.properties
+    #     dest: /opt/janusgraph/conf/janusgraph.properties
+    #     force: yes
+    #     owner: root
+    #     group: root
+    #     mode: 0644
+    # - name: Copy over JanusGraph unit file
+    #   copy:
+    #     src: files/janusgraph.service
+    #     dest: /lib/systemd/system/janusgraph.service
+    #     force: yes
+    #     owner: root
+    #     group: root
+    #     mode: 0644
+    # - name: Enable janusgraph
+    #   systemd:
+    #.    daemon_reload: yes
+    #     enabled: yes
+    #     name: janusgraph
+    #     state: started
+    # - name: Allow ssh through firewall
+    #   ufw:
+    #     rule: allow
+    #     name: OpenSSH
+    # - name: Allow tinyproxy through firewall
+    #   ufw:
+    #     rule: allow
+    #  #  name: janusgraph # TODO verify this will work instead of port.
+    #     port: 8182
+    #     direction: in
+    #     proto: any
+    #     state: enabled
+

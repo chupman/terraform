@@ -1,0 +1,17 @@
+Host bastion
+    User                   ubuntu
+    HostName               REPLACE_WITH_IP
+    ProxyCommand           none
+    IdentityFile           REPLACE_WITH_PEM_PATH
+    BatchMode              yes
+    PasswordAuthentication no
+
+Host *
+    ServerAliveInterval    60
+    TCPKeepAlive           yes
+    ProxyCommand           ssh -q -A ubuntu@REPLACE_WITH_IP nc %h %p
+    ControlMaster          auto
+    ControlPath            ~/.ssh/mux-%r@%h:%p
+    ControlPersist         8h
+    User                   ubuntu
+    IdentityFile           REPLACE_WITH_PEM_PATH

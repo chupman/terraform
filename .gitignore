@@ -1,0 +1,11 @@
+terraform.tfstate
+terraform.tfstate.backup
+*.tfstate.lock.info
+crash.log
+site.yaml
+lock.json
+exports.sh
+ssh.config
+ansible/group_vars/*.yaml
+*.retry
+.DS_Store
