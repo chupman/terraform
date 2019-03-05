@@ -15,7 +15,7 @@
       command: update-grub-legacy-ec2
       when: menu_lst.changed
     - name: Install Java state=present update_cache=yes
-      apt: 
+      apt:
         name: "{{ packages }}"
       vars:
         packages:
@@ -32,7 +32,7 @@
         name: tinyproxy
         update_cache: yes
     - name: Create tinyproxy config from template
-      template: 
+      template:
         src: templates/tinyproxy.conf.j2
         dest: /etc/tinyproxy/tinyproxy.conf
         owner: root
@@ -77,7 +77,7 @@
   become_method: sudo
   tasks:
     - name: Create apt proxy config from template
-      template: 
+      template:
         src: templates/proxy.conf.j2
         dest: /etc/apt/apt.conf.d/proxy.conf
         owner: root
@@ -87,7 +87,7 @@
       apt_key:
         data: "{{ lookup('file', 'cassandra.asc') }}"
     - name: add cassandra debian repository
-      apt_repository: 
+      apt_repository:
         repo: 'deb http://www.apache.org/dist/cassandra/debian 311x main'
         state: present
     - name: install cassandra
@@ -96,7 +96,7 @@
         state: present
         update_cache: yes
     - name: Create Cassandra config from template
-      template: 
+      template:
         src: templates/cassandra.yaml.j2
         dest: /etc/cassandra/cassandra.yaml
         owner: root
@@ -151,7 +151,7 @@
     http_proxy: "http://{{ bastion_ip }}:8888"
   tasks:
     - name: Create apt proxy config from template
-      template: 
+      template:
         src: templates/proxy.conf.j2
         dest: /etc/apt/apt.conf.d/proxy.conf
         owner: root
@@ -210,11 +210,11 @@
       command: mv /opt/janusgraph-0.3.1-hadoop2 /opt/janusgraph
       when: find_janusgraph_folder is failed
     - name: Create Janusgrpah log directory
-      file: 
+      file:
         path: /var/log/janusgraph
         state: directory
     - name: Create janusgraph properties file from template
-      template: 
+      template:
         src: templates/janusgraph.properties.j2
         dest: /opt/janusgraph/conf/gremlin-server/janusgraph.properties
         owner: ubuntu
@@ -222,7 +222,7 @@
         mode: 0644
         force: yes
     - name: Create janusgraph server file from template
-      template: 
+      template:
         src: templates/janusgraph-server.yaml.j2
         dest: /opt/janusgraph/conf/gremlin-server/janusgraph-server.yaml
         owner: ubuntu
@@ -230,7 +230,7 @@
         mode: 0644
         force: yes
     - name: Create janusgraph server wrapper script from template
-      template: 
+      template:
         src: templates/janusgraph-service-wrapper.sh.j2
         dest: /opt/janusgraph/bin/janusgraph-service-wrapper.sh
         owner: ubuntu
