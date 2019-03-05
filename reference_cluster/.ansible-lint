@@ -1,0 +1,8 @@
+exclude_paths:
+  - ./ansible/roles/elastic.elasticsearch/
+parseable: true
+quiet: true
+rulesdir:
+  - ./rule/directory/
+use_default_rules: true
+verbosity: 1
