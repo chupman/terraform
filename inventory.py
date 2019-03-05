@@ -80,16 +80,24 @@ class CreateInventoryFile:
                     self.writeSshConfig(tags["bastion"])
                     f.write("bastion_ip=" + tags["bastion"][0]['private_ip'] + "\n")
                 if "jg-cass" == tag:
-                    f.write("cassandra_seeds=")
-                    for i in range(min(3, len(tags[tag]))):
-                        if i > 0:
-                            f.write(',')
-                        f.write(tags[tag][i]['private_ip'])
-                    f.write("\n")
+                    f.write("cassandra_seeds=" + self.getPrivateIPsByTag(tags, tag) + "\n")
+                if "jg-es" == tag:
+                    f.write("es_hosts=" + self.getPrivateIPsByTag(tags, tag) + "\n")
+                if "jg-gremlin" == tag:
+                    f.write("es_hosts=" + self.getPrivateIPsByTag(tags, "jg-es") + "\n")
+                    f.write("cass_hosts=" + self.getPrivateIPsByTag(tags, "jg-cass") + "\n")
                 if write_es_master:
                     f.write("es_master_ip=" + es_master_ip + "\n")
                     f.write("[jg-es-master]\n")
                     f.write(es_master_name + " ansible_host=" + es_master_ip + "\n")
+                    write_es_master = False
+
+    def getPrivateIPsByTag(self, tags, tag):
+        private_ip_list = []
+        for i in range(min(3, len(tags[tag]))):
+            private_ip_list.append(tags[tag][i]['private_ip'])
+        return ','.join(map(str, private_ip_list))
+
                 
 
     # def writeGatewayConfig(self, tag):

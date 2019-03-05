@@ -1,0 +1,59 @@
+#!/bin/bash
+
+PID_FILE=/var/run/janusgraph.pid
+
+usage() {
+  echo "Usage: `basename $0`: start|stop|status"
+  exit 1
+}
+
+status() {
+  echo "get program status"
+  local pid
+  if [[ -f "$PID_FILE" && -s "$PID_FILE" ]]; then
+    #statements
+        pid=$(cat $PID_FILE)
+    if kill -0 $pid > /dev/null 2>&1; then
+        # pid exists
+                echo "program is running"
+        return 0
+    fi
+  else
+    echo "program is not running"
+  fi
+  return 1
+}
+
+start() {
+  if ! status ; then
+      echo "start program"
+      /usr/bin/nohup /opt/janusgraph/bin/gremlin-server.sh /opt/janusgraph/janusgraph-server.yaml 1> /var/log/janusgraph/janusgraph.log 2> /var/log/janusgraph/error.log &
+      echo $! > $PID_FILE
+      sleep 50
+  fi
+}
+
+stop() {
+    local pid
+    if status ; then
+        echo "stop program"
+        pid=`cat $PID_FILE`
+        kill -9 $pid
+                rm -f $PID_FILE
+    fi
+}
+
+case "$1" in
+    start)
+  start
+  ;;
+  stop)
+  stop
+  ;;
+  status)
+  status
+  ;;
+  *)
+  usage
+  ;;
+esac

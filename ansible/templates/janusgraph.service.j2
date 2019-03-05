@@ -1,0 +1,16 @@
+[Unit]
+Description=JanusGraph
+Documentation=http://janusgraph.org/
+After=network.target
+
+[Service]
+Type=forking
+User=<username>
+Group=<groupname>
+WorkingDirectory=/path/to/janusgraph
+# Using /bin/bash gets around potential SELinux issues with Java
+ExecStart=/bin/bash -c '/path/to/janusgraph/bin/janusgraph.sh start'
+ExecStop=/bin/bash -c '/path/to/janusgraph/bin/janusgraph.sh stop'
+
+[Install]
+WantedBy=multi-user.target
