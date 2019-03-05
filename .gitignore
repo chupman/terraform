@@ -6,6 +6,7 @@ site.yaml
 lock.json
 exports.sh
 ssh.config
-ansible/group_vars/*.yaml
+reference_cluster/ansible/group_vars/*.yaml
 *.retry
 .DS_Store
+reference_cluster/ansible/roles/*

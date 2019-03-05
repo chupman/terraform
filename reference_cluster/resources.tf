@@ -250,9 +250,9 @@ resource "null_resource" "ansible_setup" {
 
   provisioner "local-exec" {
     inline = [
-    "python ../inventory.py --privatekey=${var.private_key_path}",
-    "ansible-galaxy install -r ../ansible/requirements.yml -p ../ansible/roles",
-    "cd ../ && ansible-playbook ansible/playbook.yml",
+    "python inventory.py --privatekey=${var.private_key_path}",
+    "ansible-galaxy install -r ansible/requirements.yml -p ansible/roles",
+    "ansible-playbook ansible/playbook.yml",
     ]
   }
 
