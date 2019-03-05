@@ -4,10 +4,16 @@
   become_user: root
   become_method: sudo
   tasks:
-    - name: Replace LABEL=cloudimg-rootfs with (hd0) to fix apt # TODO use replace module instead of sed
-      command: sed -i 's/groot=LABEL=cloudimg-rootfs/groot=(hd0)/g' /boot/grub/menu.lst
+    - name: Replace LABEL=cloudimg-rootfs with (hd0) to fix apt
+      replace:
+        path: /boot/grub/menu.lst
+        regexp: groot=LABEL=cloudimg-rootfs
+        replace: groot=(hd0)
+        backup: yes
+      register: menu_lst
     - name: regenerate menu.lst to reflect changes
       command: update-grub-legacy-ec2
+      when: menu_lst.changed
     - name: Install Java state=present update_cache=yes
       apt: 
         name: "{{ packages }}"
@@ -32,6 +38,7 @@
         owner: root
         group: root
         mode: 0644
+      register: tinyproxy_template
     - name: Copy filter file for tinyproxy
       copy:
         src: files/filter
@@ -40,11 +47,17 @@
         owner: root
         group: root
         mode: 0644
+      register: filter_file
     - name: Enable tinyproxy
       systemd:
         enabled: yes
         name: tinyproxy
+        state: started
+    - name: Restart tinyproxy
+      systemd:
+        name: tinyproxy
         state: restarted
+      when: filter_file.changed or tinyproxy_template.changed
     - name: Allow ssh through firewall
       ufw:
         rule: allow
@@ -90,17 +103,23 @@
         group: root
         mode: 0644
         backup: yes
-    # These need to only happen on initial setup
-    # - name: Stop Cassandra
-    #   systemd:
-    #     name: cassandra
-    #     state: stopped
-    # - name: Clear out Cassandra data
-    #   command: rm -rf /var/lib/cassandra/data/system/*    
-    # - name: Clean out unused file
-    #   file: 
-    #     state: absent
-    #     path: /etc/cassandra/cassandra-topology.properties    
+    - name: check if Cassandra is clustered
+      shell: "nodetool status | grep [U,D][N,L,J,M] | wc -l"
+      ignore_errors: True
+      register: cassandra_cluster_node_count
+    - name: Stop Cassandra because cluster is not initialized
+      systemd:
+        name: cassandra
+        state: stopped
+      when: cassandra_cluster_node_count.stdout|int < 2
+    - name: Clear out Cassandra data/system folder to enable cluster bootstrap
+      command: rm -rf /var/lib/cassandra/data/system/*
+      when: cassandra_cluster_node_count.stdout|int < 2
+    - name: Clean out unused file
+      file:
+        state: absent
+        path: /etc/cassandra/cassandra-topology.properties
+      when: cassandra_cluster_node_count.stdout|int < 2
     - name: Enable Cassandra
       systemd:
         enabled: yes
@@ -119,8 +138,6 @@
         - { port: 9042}
         - { port: 9160}
         - { port: 9142}
-#      notify:
-#        - restart ufw
     - name: Enable ufw
       ufw:
         state: enabled
@@ -162,7 +179,6 @@
     es_version_lock: false
     es_api_port: 9200
 
-
 - hosts: jg-gremlin
   become: yes
   become_user: root
@@ -180,11 +196,11 @@
         dest: "/tmp/janusgraph-0.3.1-hadoop2.zip"
         mode: 0644
         use_proxy: yes
-    - name: check if Janusgraph has already been unzipped
+    - name: check if /opt/janusgraph already exists
       command: "ls /opt/janusgraph"
-      register: find_janusgraph_folder
       ignore_errors: True
-    - name: Download and Unzip JanusGraph
+      register: find_janusgraph_folder
+    - name: Unzip JanusGraph
       unarchive:
         src: "/tmp/janusgraph-0.3.1-hadoop2.zip"
         dest: /opt/
@@ -246,4 +262,3 @@
         direction: in
         proto: any
         state: enabled
-
