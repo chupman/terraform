@@ -10,3 +10,4 @@ reference_cluster/ansible/group_vars/*.yaml
 *.retry
 .DS_Store
 reference_cluster/ansible/roles/*
+**/.terraform/*

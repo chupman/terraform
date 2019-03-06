@@ -4,9 +4,16 @@ Documentation=http://janusgraph.org/
 After=network.target
 
 [Service]
-Type=forking
-User=root
-Group=root
+Environment=JANUSGRAPH_YAML=/opt/janusgraph/conf/gremlin-server/janusgraph-server.yaml
+Environment=JANUSGRAPH_LOGDIR=/var/log/janusgraph
+Environment=PID_DIR=/var/run/janusgraph
+Environment=JANUSGRAPH_HOME=/opt/janusgraph
+
+#Type=forking
+Type=simple
+
+User=ubuntu
+Group=ubuntu
 WorkingDirectory=/opt/janusgraph
 # Using /bin/bash gets around potential SELinux issues with Java
 ExecStart=/bin/bash -c '/opt/janusgraph/bin/janusgraph-server.sh start'

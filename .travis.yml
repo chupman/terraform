@@ -1,0 +1,3 @@
+# place holder. Will want to the following commands once I finish cleanup
+# terraform validate -check-variables=true
+# ansible-lint

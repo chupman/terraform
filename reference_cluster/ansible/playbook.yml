@@ -185,6 +185,7 @@
   become_method: sudo
   environment:
     https_proxy: "http://{{ bastion_ip }}:8888"
+    http_proxy: "http://{{ bastion_ip }}:8888"
   tasks:
     - name: Install unzip
       apt:
@@ -195,6 +196,8 @@
         url: "http://github.com/JanusGraph/janusgraph/releases/download/v0.3.1/janusgraph-0.3.1-hadoop2.zip"
         dest: "/tmp/janusgraph-0.3.1-hadoop2.zip"
         mode: 0644
+        owner: ubuntu
+        group: ubuntu
         use_proxy: yes
     - name: check if /opt/janusgraph already exists
       command: "ls /opt/janusgraph"
@@ -204,15 +207,25 @@
       unarchive:
         src: "/tmp/janusgraph-0.3.1-hadoop2.zip"
         dest: /opt/
+        owner: ubuntu
+        group: ubuntu
         remote_src: yes
       when: find_janusgraph_folder is failed
     - name: rename janusgraph folder
       command: mv /opt/janusgraph-0.3.1-hadoop2 /opt/janusgraph
       when: find_janusgraph_folder is failed
-    - name: Create Janusgrpah log directory
+    - name: Create Janusgraph log directory
       file:
         path: /var/log/janusgraph
         state: directory
+        owner: ubuntu
+        group: ubuntu
+    - name: Create Janusgraph pid directory
+      file:
+        path: /var/run/janusgraph
+        state: directory
+        owner: ubuntu
+        group: ubuntu
     - name: Create janusgraph properties file from template
       template:
         src: templates/janusgraph.properties.j2
@@ -230,9 +243,9 @@
         mode: 0644
         force: yes
     - name: Create janusgraph server wrapper script from template
-      template:
-        src: templates/janusgraph-service-wrapper.sh.j2
-        dest: /opt/janusgraph/bin/janusgraph-service-wrapper.sh
+      copy:
+        src: files/janusgraph-server.sh
+        dest: /opt/janusgraph/bin/janusgraph-server.sh
         owner: ubuntu
         group: ubuntu
         mode: 0755
@@ -242,8 +255,8 @@
         src: files/janusgraph.service
         dest: /lib/systemd/system/janusgraph.service
         force: yes
-        owner: root
-        group: root
+        owner: ubuntu
+        group: ubuntu
         mode: 0644
     - name: Enable janusgraph
       systemd:
