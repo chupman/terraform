@@ -13,7 +13,7 @@ provider "ibm" {}
 # }
 
 variable "datacenter_choice" {
-  description = "Lists of datacenter to use"
+  description = "List of datacenters to use"
   default = [
     {
       datacenter = "sjc01"
@@ -30,38 +30,43 @@ variable "datacenter_choice" {
   ]
 }
 variable "public_key_path" {
-  description = "Public key path"
+  description = "Path to ssh public key."
   default = "~/.ssh/id_rsa.pub"
 }
 
 variable "private_key_path" {
-  description = "Fully qualified path to ssh private key"
-  default = "/Users/chupman/.ssh/id_rsa"
+  description = "Fully qualified path to ssh private key."
+  default = "~/.ssh/id_rsa"
 } 
 
 variable "host_prefix" {
-  description = "cluster resource name prefix"
-  default = "chupman"
+  description = "The cluster resource name prefix."
+  default = "JanusGraph"
 }
 
 variable "ssh_keys" {
-  description = "ssh keys to add to the hosts"
-  default = 1224997
+  description = "Softlayer ids of the ssh keys to add to the hosts. Should be an array of integers."
+  default = []
 }
 
 variable "wait_time_minutes" {
-  description = "Time to wait before deploying resources"
+  description = "Time to wait before deploying resources."
   default = 90
 }
 
 variable "hourly_billing" {
-  description = "True is hourly billing is desired, false if monthly billing is preferred"
+  description = "True if hourly billing is desired, false results in monthly billing."
   default = true
 }
 
+# variable "prevent_destroy" {
+#   description = "Variables in lifecycle blocks are currently not supported by terraform (https://github.com/hashicorp/terraform/issues/3116) Please uncomment the lifecycle blocks in resources.tf if using monthly billing."
+#   default = false
+# }
+
 variable "domain" {
-  description = "Domain for deployed resources"
-  default = "cloud.ibm.com"
+  description = "Domain for deployed resources."
+  default = ""
 }
 ###############################################################################
 # Cassandra Cluster Options

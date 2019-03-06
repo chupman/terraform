@@ -33,18 +33,17 @@ resource "ibm_compute_vm_instance" "bastion" {
   memory = "${var.bastion_memory}"
   disks = "${var.bastion_disk_size}"
   wait_time_minutes = "${var.wait_time_minutes}"
-  ssh_key_ids = ["${var.ssh_keys}"]
+  ssh_key_ids = "${var.ssh_keys}"
 
   connection {
     host = "${self.ipv4_address}"
     type = "ssh"
     user = "root"
-    private_key = "${file("var.private_key_path")}"
+    private_key = "${file(var.private_key_path)}"
   }
 
   # lifecycle {
   #   prevent_destroy = true
-  # }
 
   provisioner "remote-exec" {
     inline = [
@@ -55,7 +54,6 @@ resource "ibm_compute_vm_instance" "bastion" {
 
   provisioner "local-exec" {
     command = "python ../inventory.py"
-    
   }
 }
 
@@ -85,16 +83,16 @@ resource "ibm_compute_vm_instance" "cass" {
   memory = "${var.cass_memory}"
   disks = "${var.cass_disk_size}"
   wait_time_minutes = "${var.wait_time_minutes}"
-  ssh_key_ids = ["${var.ssh_keys}"]
+  ssh_key_ids = "${var.ssh_keys}"
 
   connection {
     host = "${self.ipv4_address_private}"
     type = "ssh"
     user = "ubuntu"
-    private_key = "${file("var.private_key_path")}"
+    private_key = "${file(var.private_key_path)}"
 
     bastion_host = "${ibm_compute_vm_instance.bastion.ipv4_address}"
-    bastion_private_key = "${file("var.private_key_path")}"
+    bastion_private_key = "${file(var.private_key_path)}"
     bastion_user = "ubuntu"
   }
 
@@ -136,16 +134,16 @@ resource "ibm_compute_vm_instance" "es" {
   memory = "${var.es_memory}"
   disks = "${var.es_disk_size}"
   wait_time_minutes = "${var.wait_time_minutes}"
-  ssh_key_ids = ["${var.ssh_keys}"]
+  ssh_key_ids = "${var.ssh_keys}"
 
   connection {
     host = "${self.ipv4_address_private}"
     type = "ssh"
     user = "ubuntu"
-    private_key = "${file("var.private_key_path")}"
+    private_key = "${file(var.private_key_path)}"
 
     bastion_host = "${ibm_compute_vm_instance.bastion.ipv4_address}"
-    bastion_private_key = "${file("var.private_key_path")}"
+    bastion_private_key = "${file(var.private_key_path)}"
     bastion_user = "ubuntu"
   }
 
@@ -186,16 +184,16 @@ resource "ibm_compute_vm_instance" "gremlin" {
   memory = "${var.gremlin_memory}"
   disks = "${var.gremlin_disk_size}"
   wait_time_minutes = "${var.wait_time_minutes}"
-  ssh_key_ids = ["${var.ssh_keys}"]
+  ssh_key_ids = "${var.ssh_keys}"
 
   connection {
     host = "${self.ipv4_address_private}"
     type = "ssh"
     user = "ubuntu"
-    private_key = "${file("var.private_key_path")}"
+    private_key = "${file(var.private_key_path)}"
 
     bastion_host = "${ibm_compute_vm_instance.bastion.ipv4_address}"
-    bastion_private_key = "${file("var.private_key_path")}"
+    bastion_private_key = "${file(var.private_key_path)}"
     bastion_user = "ubuntu"
   }
 
@@ -243,17 +241,21 @@ resource "ibm_lbaas_server_instance_attachment" "lbaas_members" {
 }
 
 
-resource "null_resource" "ansible_setup" {
+resource "null_resource" "ansible_setup_and_run" {
   triggers = {
     always_run = "${timestamp()}"
   }
 
   provisioner "local-exec" {
-    inline = [
-    "python inventory.py --privatekey=${var.private_key_path}",
-    "ansible-galaxy install -r ansible/requirements.yml -p ansible/roles",
-    "ansible-playbook ansible/playbook.yml",
-    ]
+    command = "python inventory.py --privatekey=${var.private_key_path}"
   }
+
+  provisioner "local-exec" {
+    command = "ansible-galaxy install -r ansible/requirements.yml -p ansible/roles"
+  }
+
+  provisioner "local-exec" {
+    command = "ansible-playbook ansible/playbook.yml"
+  }  
 
 }
