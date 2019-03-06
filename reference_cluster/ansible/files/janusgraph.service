@@ -9,7 +9,6 @@ Environment=JANUSGRAPH_LOGDIR=/var/log/janusgraph
 Environment=PID_DIR=/var/run/janusgraph
 Environment=JANUSGRAPH_HOME=/opt/janusgraph
 
-#Type=forking
 Type=simple
 
 User=ubuntu

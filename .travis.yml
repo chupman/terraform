@@ -1,3 +1,16 @@
-# place holder. Will want to the following commands once I finish cleanup
-# terraform validate -check-variables=true
-# ansible-lint
+language: python
+
+python:
+  - "2.7"
+
+# Install terraform
+before_install:
+  - curl -sLo terraform.zip https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip
+  - unzip terraform.zip
+
+install:
+  - pip install -r requirements.txt
+
+script:
+  - ansible-lint reference_cluster/ansible/playbook.yml
+  - cd reference_cluster/ && terraform validate -check-variables=true; cd ../
