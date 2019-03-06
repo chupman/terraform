@@ -11,3 +11,4 @@ reference_cluster/ansible/group_vars/*.yaml
 .DS_Store
 reference_cluster/ansible/roles/*
 **/.terraform/*
+secrets.auto.tfvars

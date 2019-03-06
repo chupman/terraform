@@ -6,11 +6,21 @@ python:
 # Install terraform
 before_install:
   - curl -sLo terraform.zip https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip
-  - unzip terraform.zip
+  - curl -sLo ibm.zip https://github.com/IBM-Cloud/terraform-provider-ibm/releases/download/v0.14.1/linux_amd64.zip
+  - mkdir bin
+  - mkdir -p ~/.terraform.d/plugins/
+  - unzip terraform.zip -d bin
+  - unzip ibm.zip -d ~/.terraform.d/plugins/
+  - export PATH="${PATH}:$(pwd)/bin"
+  - touch ~/.ssh/id_rsa
+  - touch ~/.ssh/id_rsa.pub
 
 install:
   - pip install -r requirements.txt
+  - cd reference_cluster
+  - terraform init 
+  - cd ../
 
 script:
   - ansible-lint reference_cluster/ansible/playbook.yml
-  - cd reference_cluster/ && terraform validate -check-variables=true; cd ../
+  - cd reference_cluster; terraform validate -check-variables=true;
