@@ -1,26 +1,35 @@
 language: python
 
-python:
-  - "2.7"
-
-# Install terraform
-before_install:
-  - curl -sLo terraform.zip https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip
-  - curl -sLo ibm.zip https://github.com/IBM-Cloud/terraform-provider-ibm/releases/download/v0.14.1/linux_amd64.zip
-  - mkdir bin
-  - mkdir -p ~/.terraform.d/plugins/
-  - unzip terraform.zip -d bin
-  - unzip ibm.zip -d ~/.terraform.d/plugins/
-  - export PATH="${PATH}:$(pwd)/bin"
-  - touch ~/.ssh/id_rsa
-  - touch ~/.ssh/id_rsa.pub
+matrix:
+  include:
+  - name: "Ansible Tests"
+    python: "2.7"
+    env: TEST_TYPE="ansible"
+  - name: "Terraform Tests"
+    python: "2.7"
+    env: TEST_TYPE="terraform"
 
 install:
-  - pip install -r requirements.txt
-  - cd reference_cluster
-  - terraform init 
-  - cd ../
+  - if [ "${TEST_TYPE}" == "ansible" ]; then
+      echo "Install Ansible requirements";
+      pip install -r requirements.txt;
+    elif [ "${TEST_TYPE}" == "terraform" ]; then
+      echo "Setting up Terraform and IBM provider";
+      ./setup_terraform.sh ci;
+    else
+      echo "TEST_TYPE is not set. Please check your matrix settings in .travis.yml";
+    fi
 
 script:
-  - ansible-lint reference_cluster/ansible/playbook.yml
-  - cd reference_cluster; terraform validate -check-variables=true;
+  - if [ "${TEST_TYPE}" == "ansible" ]; then
+      echo "Running Ansible linting";
+      ansible-lint reference_cluster/ansible/playbook.yml;
+    elif [ "${TEST_TYPE}" == "terraform" ]; then
+      export PATH="${PATH}:$(pwd)/bin";
+      echo "Running Terraform validation";
+      cd reference_cluster;
+      terraform init;
+      terraform validate -check-variables=true;
+    else
+      echo "TEST_TYPE is not set. Please check your matrix settings in .travis.yml";
+    fi
