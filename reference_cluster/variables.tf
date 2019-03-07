@@ -2,15 +2,12 @@
 # Shared Configuration Options
 ###############################################################################
 
-# Credentials are set with Environment Variables
-provider "ibm" {}
-
-### If you wish to set you credentials statically use this block instead.
-# provider "ibm" {
-#     bluemix_api_key = ""
-#     softlayer_username = ""
-#     softlayer_api_key = ""
-# }
+# Credentials set with Environment Variables take precedence.
+provider "ibm" {
+    bluemix_api_key = "${var.ibm_bmx_api_key}"
+    softlayer_username = "${var.ibm_sl_username}"
+    softlayer_api_key = "${var.ibm_sl_api_key}"
+}
 
 variable "datacenter_choice" {
   description = "List of datacenters to use"
@@ -29,6 +26,22 @@ variable "datacenter_choice" {
 #    }
   ]
 }
+
+variable "ibm_sl_username" {
+  description = "IBM Cloud API username. Should be set in secrets.auto.tfvars or ENV"
+  default = "please override me in secrets.auto.tfvars"
+}
+
+variable "ibm_sl_api_key" {
+  description = "IBM Cloud API key. Should be set in secrets.auto.tfvars or ENV"
+  default = "please override me in secrets.auto.tfvars"
+}
+
+variable "ibm_bmx_api_key" {
+  description = "IBM blumix API key. Should be set in secrets.auto.tfvars or ENV"
+  default = "please override me in secrets.auto.tfvars"
+}
+
 variable "public_key_path" {
   description = "Path to ssh public key."
   default = "~/.ssh/id_rsa.pub"

@@ -1,22 +1,4 @@
 #################################################
-# SSH Key for environment
-#################################################
-
-# This is actually a horrible practice as it saves the private key into 
-# the terraform.tfstate file. I plan to remove this block entirely. 
-# I will probably just have all hosts use the same key pair.
-# resource "tls_private_key" "bastion_key" {
-#   algorithm = "RSA"
-#   rsa_bits  = 4096
-# }
-
-# resource "ibm_compute_ssh_key" "bastion_key" {
-#     label = "${var.host_prefix}_jg_bastion_key"
-#     notes = "ssh key for bastion host to access private infrastructure"
-#     public_key = "${tls_private_key.bastion_key.public_key_openssh}"
-# }
-
-#################################################
 # Bastion host
 #################################################
 
@@ -259,7 +241,9 @@ resource "null_resource" "ansible_setup_and_run" {
   }  
 
   depends_on = [
-      "ibm_lbaas_server_instance_attachment.lbaas_members",
+      "ibm_compute_vm_instance.cass",
+      "ibm_compute_vm_instance.es",
+      "ibm_compute_vm_instance.gremlin",
   ]
 
 }

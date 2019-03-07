@@ -1,14 +1,46 @@
+#################################################
+# Terraform
+#################################################
+*.dll
+*.exe
+.DS_Store
+example.tf
+# tfstate files should be stored in a centralized location other than git
+terraform.tfplan
 terraform.tfstate
 terraform.tfstate.backup
+bin/
+modules-dev/
+pkg/
+vendor/
+website/.vagrant
+website/build
+website/node_modules
+.vagrant/
+*.backup
+./*.tfstate
+.terraform/
+*.log
+*.bak
+*~
+.*.swp
+.idea
 *.tfstate.lock.info
 crash.log
-site.yaml
-lock.json
-exports.sh
-ssh.config
-reference_cluster/ansible/group_vars/*.yaml
-*.retry
-.DS_Store
-reference_cluster/ansible/roles/*
 **/.terraform/*
 secrets.auto.tfvars
+
+#################################################
+# Ansible
+#################################################
+site.yaml
+lock.json
+ssh.config
+**/ansible/group_vars/*.yaml
+**/ansible/roles/*
+*.retry
+
+#################################################
+# Other
+#################################################
+exports.sh
