@@ -1,5 +1,8 @@
 language: python
 
+env:
+  - TF_INPUT=false
+
 matrix:
   include:
   - name: "Ansible Tests"

@@ -258,4 +258,8 @@ resource "null_resource" "ansible_setup_and_run" {
     command = "ansible-playbook ansible/playbook.yml"
   }  
 
+  depends_on = [
+      "ibm_lbaas_server_instance_attachment.lbaas_members",
+  ]
+
 }

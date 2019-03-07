@@ -13,17 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-### BEGIN INIT INFO
-# Provides:          janusgraph-server
-# Required-Start:    $remote_fs $syslog $network
-# Required-Stop:     $remote_fs $syslog $network
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: Gremlin Server
-# Description:       Apache JanusGraph Server
-# chkconfig:         2345 98 01
-### END INIT INFO
-
 [[ -n "$DEBUG" ]] && set -x
 
 SOURCE="${BASH_SOURCE[0]}"

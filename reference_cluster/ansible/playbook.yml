@@ -10,10 +10,8 @@
         regexp: groot=LABEL=cloudimg-rootfs
         replace: groot=(hd0)
         backup: yes
-      register: menu_lst
-    - name: regenerate menu.lst to reflect changes
-      command: update-grub-legacy-ec2
-      when: menu_lst.changed
+        notify:
+          - Regenerate_menu.lst
     - name: Install Java state=present update_cache=yes
       apt:
         name: "{{ packages }}"
@@ -21,6 +19,9 @@
         packages:
           - openjdk-8-jdk
           - ntp
+  handlers:
+    - name: Regenerate_menu.lst
+      command: update-grub-legacy-ec2
 
 - hosts: bastion
   become: yes
@@ -38,7 +39,8 @@
         owner: root
         group: root
         mode: 0644
-      register: tinyproxy_template
+      # register: tinyproxy_template
+      notify: Restart_tinyproxy
     - name: Copy filter file for tinyproxy
       copy:
         src: files/filter
@@ -47,17 +49,18 @@
         owner: root
         group: root
         mode: 0644
-      register: filter_file
+      # register: filter_file
+      notify: Restart_tinyproxy
     - name: Enable tinyproxy
       systemd:
         enabled: yes
         name: tinyproxy
         state: started
-    - name: Restart tinyproxy
-      systemd:
-        name: tinyproxy
-        state: restarted
-      when: filter_file.changed or tinyproxy_template.changed
+    # - name: Restart tinyproxy
+    #   systemd:
+    #     name: tinyproxy
+    #     state: restarted
+    #   when: filter_file.changed or tinyproxy_template.changed
     - name: Allow ssh through firewall
       ufw:
         rule: allow
@@ -70,6 +73,11 @@
         direction: in
         proto: any
         state: enabled
+  handlers:
+    - name: Restart_tinyproxy
+      systemd:
+        name: tinyproxy
+        state: restarted
 
 - hosts: jg-cass
   become: yes
@@ -107,15 +115,25 @@
       shell: "nodetool status | grep [U,D][N,L,J,M] | wc -l"
       ignore_errors: True
       register: cassandra_cluster_node_count
+      changed_when: False
     - name: Stop Cassandra because cluster is not initialized
       systemd:
         name: cassandra
         state: stopped
       when: cassandra_cluster_node_count.stdout|int < 2
+    - name: Find Directories for existing cluster data
+      find: path=/var/lib/cassandra/data/system/ file_type=directories
+      register: directories
+    - name: Find Directories for existing cluster data
+      find: path=/var/lib/cassandra/data/system/ file_type=files
+      register: files
     - name: Clear out Cassandra data/system folder to enable cluster bootstrap
-      command: rm -rf /var/lib/cassandra/data/system/*
+      file: state=absent path={{ item.path }}
+      with_items:
+        - "{{ files }}"
+        - "{{ directories }}"
       when: cassandra_cluster_node_count.stdout|int < 2
-    - name: Clean out unused file
+    - name: Remove cassandra-topology.properties
       file:
         state: absent
         path: /etc/cassandra/cassandra-topology.properties
@@ -203,6 +221,7 @@
       command: "ls /opt/janusgraph"
       ignore_errors: True
       register: find_janusgraph_folder
+      changed_when: False
     - name: Unzip JanusGraph
       unarchive:
         src: "/tmp/janusgraph-0.3.1-hadoop2.zip"
