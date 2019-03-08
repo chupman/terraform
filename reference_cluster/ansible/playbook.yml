@@ -10,8 +10,8 @@
         regexp: groot=LABEL=cloudimg-rootfs
         replace: groot=(hd0)
         backup: yes
-        notify:
-          - Regenerate_menu.lst
+      notify:
+        - Regenerate_menu.lst
     - name: Install Java state=present update_cache=yes
       apt:
         name: "{{ packages }}"
@@ -122,16 +122,14 @@
         state: stopped
       when: cassandra_cluster_node_count.stdout|int < 2
     - name: Find Directories for existing cluster data
-      find: path=/var/lib/cassandra/data/system/ file_type=directories
-      register: directories
-    - name: Find Directories for existing cluster data
-      find: path=/var/lib/cassandra/data/system/ file_type=files
-      register: files
+      find: path=/var/lib/cassandra/data/system/ file_type=any
+      register: cass_system_directory
     - name: Clear out Cassandra data/system folder to enable cluster bootstrap
-      file: state=absent path={{ item.path }}
+      file:  
+        path: "{{ item.path }}"
+        state: absent
       with_items:
-        - "{{ files }}"
-        - "{{ directories }}"
+        - "{{ cass_system_directory.files }}"
       when: cassandra_cluster_node_count.stdout|int < 2
     - name: Remove cassandra-topology.properties
       file:
