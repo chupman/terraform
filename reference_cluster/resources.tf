@@ -20,7 +20,7 @@ resource "ibm_compute_vm_instance" "bastion" {
   connection {
     host = "${self.ipv4_address}"
     type = "ssh"
-    user = "root"
+    user = "ubuntu"
     private_key = "${file(var.private_key_path)}"
   }
 
@@ -226,6 +226,19 @@ resource "ibm_lbaas_server_instance_attachment" "lbaas_members" {
 resource "null_resource" "ansible_setup_and_run" {
   triggers = {
     always_run = "${timestamp()}"
+  }
+
+  connection {
+    host = "${self.ipv4_address}"
+    type = "ssh"
+    user = "ubuntu"
+    private_key = "${file(var.private_key_path)}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+    "hostname",
+    ]
   }
 
   provisioner "local-exec" {

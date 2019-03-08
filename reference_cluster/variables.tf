@@ -29,12 +29,12 @@ variable "datacenter_choice" {
 
 variable "ibm_sl_username" {
   description = "IBM Cloud API username. Should be set in secrets.auto.tfvars or ENV"
-  default = "please override me in secrets.auto.tfvars"
+  default = "OVERRIDE ME IN secrets.auto.tfvars"
 }
 
 variable "ibm_sl_api_key" {
   description = "IBM Cloud API key. Should be set in secrets.auto.tfvars or ENV"
-  default = "please override me in secrets.auto.tfvars"
+  default = "OVERRIDE ME IN secrets.auto.tfvars"
 }
 
 variable "ibm_bmx_api_key" {
