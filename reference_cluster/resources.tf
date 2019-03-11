@@ -229,10 +229,14 @@ resource "null_resource" "ansible_setup_and_run" {
   }
 
   connection {
-    host = "${self.ipv4_address}"
+    host = "${ibm_compute_vm_instance.gremlin.*.ipv4_address_private[0]}"
     type = "ssh"
     user = "ubuntu"
     private_key = "${file(var.private_key_path)}"
+
+    bastion_host = "${ibm_compute_vm_instance.bastion.ipv4_address}"
+    bastion_private_key = "${file(var.private_key_path)}"
+    bastion_user = "ubuntu"
   }
 
   provisioner "remote-exec" {

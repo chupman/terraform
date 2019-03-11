@@ -2,12 +2,19 @@
 # Shared Configuration Options
 ###############################################################################
 
+
+
 # Credentials set with Environment Variables take precedence.
 provider "ibm" {
     bluemix_api_key = "${var.ibm_bmx_api_key}"
     softlayer_username = "${var.ibm_sl_username}"
     softlayer_api_key = "${var.ibm_sl_api_key}"
 }
+
+# To use environment variables uncomment the provider ibm line below and comment out the
+# ibm provider above.
+
+# provider "ibm" {}
 
 variable "datacenter_choice" {
   description = "List of datacenters to use"

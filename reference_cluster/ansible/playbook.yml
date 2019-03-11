@@ -125,7 +125,7 @@
       find: path=/var/lib/cassandra/data/system/ file_type=any
       register: cass_system_directory
     - name: Clear out Cassandra data/system folder to enable cluster bootstrap
-      file:  
+      file:
         path: "{{ item.path }}"
         state: absent
       with_items:
