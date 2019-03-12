@@ -39,7 +39,6 @@
         owner: root
         group: root
         mode: 0644
-      # register: tinyproxy_template
       notify: Restart_tinyproxy
     - name: Copy filter file for tinyproxy
       copy:
@@ -49,18 +48,12 @@
         owner: root
         group: root
         mode: 0644
-      # register: filter_file
       notify: Restart_tinyproxy
     - name: Enable tinyproxy
       systemd:
         enabled: yes
         name: tinyproxy
         state: started
-    # - name: Restart tinyproxy
-    #   systemd:
-    #     name: tinyproxy
-    #     state: restarted
-    #   when: filter_file.changed or tinyproxy_template.changed
     - name: Allow ssh through firewall
       ufw:
         rule: allow
@@ -83,6 +76,8 @@
   become: yes
   become_user: root
   become_method: sudo
+  vars:
+    HOST_COUNT: "{{ groups['jg-cass'] | length}}"
   tasks:
     - name: Create apt proxy config from template
       template:
@@ -120,22 +115,22 @@
       systemd:
         name: cassandra
         state: stopped
-      when: cassandra_cluster_node_count.stdout|int < 2
+      when: cassandra_cluster_node_count.stdout|int < 2 and HOST_COUNT > 1
     - name: Find Directories for existing cluster data
       find: path=/var/lib/cassandra/data/system/ file_type=any
       register: cass_system_directory
+      when: cassandra_cluster_node_count.stdout|int < 2 and HOST_COUNT > 1
     - name: Clear out Cassandra data/system folder to enable cluster bootstrap
       file:
         path: "{{ item.path }}"
         state: absent
       with_items:
         - "{{ cass_system_directory.files }}"
-      when: cassandra_cluster_node_count.stdout|int < 2
+      when: cassandra_cluster_node_count.stdout|int < 2 and HOST_COUNT > 1
     - name: Remove cassandra-topology.properties
       file:
         state: absent
         path: /etc/cassandra/cassandra-topology.properties
-      when: cassandra_cluster_node_count.stdout|int < 2
     - name: Enable Cassandra
       systemd:
         enabled: yes

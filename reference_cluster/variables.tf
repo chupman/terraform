@@ -71,7 +71,7 @@ variable "ssh_keys" {
 
 variable "wait_time_minutes" {
   description = "Time to wait before deploying resources."
-  default = 90
+  default = 150
 }
 
 variable "hourly_billing" {

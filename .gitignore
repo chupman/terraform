@@ -29,6 +29,7 @@ website/node_modules
 crash.log
 **/.terraform/*
 secrets.auto.tfvars
+cluster*/*
 
 #################################################
 # Ansible

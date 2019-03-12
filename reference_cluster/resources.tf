@@ -250,11 +250,11 @@ resource "null_resource" "ansible_setup_and_run" {
   }
 
   provisioner "local-exec" {
-    command = "ansible-galaxy install -r ansible/requirements.yml -p ansible/roles"
+    command = "ansible-galaxy install -r ../ansible/requirements.yml -p ../ansible/roles"
   }
 
   provisioner "local-exec" {
-    command = "ansible-playbook ansible/playbook.yml"
+    command = "ansible-playbook ../ansible/playbook.yml"
   }  
 
   depends_on = [
