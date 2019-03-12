@@ -27,7 +27,7 @@ class CreateInventoryFile:
         self.roles = set(["jg-cass", "jg-es", "jg-gremlin", "bastion", "jenkins"])
         self.tags = {}
         self.args = parse_args()
-        self.rootdir = os.path.dirname(__file__)
+        self.rootdir = os.getcwd()
         self.filename = self.args.tfstate
         self.privatekeypath = self.args.privatekey
         self.tfstate = self.open_tfstate()
@@ -99,7 +99,7 @@ class CreateInventoryFile:
         return ','.join(map(str, private_ip_list))
 
                 
-
+    # If group vars are required in the future, no longer needed due to ssh.config
     # def writeGatewayConfig(self, tag):
     #     if not os.path.exists("group_vars"):
     #         os.makedirs("group_vars")

@@ -246,7 +246,7 @@ resource "null_resource" "ansible_setup_and_run" {
   }
 
   provisioner "local-exec" {
-    command = "python inventory.py --privatekey=${var.private_key_path}"
+    command = "python ../inventory.py --privatekey=${var.private_key_path}"
   }
 
   provisioner "local-exec" {
