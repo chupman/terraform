@@ -3,6 +3,16 @@
   become: yes
   become_user: root
   become_method: sudo
+  gather_facts: False
+  tasks:
+  - name: install python 2
+    raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+    changed_when: False
+
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
   tasks:
     - name: Replace LABEL=cloudimg-rootfs with (hd0) to fix apt
       replace:
@@ -77,7 +87,7 @@
   become_user: root
   become_method: sudo
   vars:
-    HOST_COUNT: "{{ groups['jg-cass'] | length}}"
+    HOST_COUNT: "{{ groups['jg-cass'] | length }}"
   tasks:
     - name: Create apt proxy config from template
       template:

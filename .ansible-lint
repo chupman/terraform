@@ -1,5 +1,5 @@
 exclude_paths:
-  - ./reference_cluster/ansible/roles/elastic.elasticsearch/
+  - ./ansible/roles/elastic.elasticsearch/
 parseable: true
 quiet: true
 rulesdir:

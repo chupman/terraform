@@ -34,9 +34,6 @@ resource "ibm_compute_vm_instance" "bastion" {
     ]
   }
 
-  provisioner "local-exec" {
-    command = "python ../inventory.py"
-  }
 }
 
 #################################################
