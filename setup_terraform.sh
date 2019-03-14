@@ -31,7 +31,10 @@ else
   echo "Found Terraform binary in ${tf_dir}, skipping download"
 fi
 
-if [ ! -e ~/.terraform.d/plugins/terraform-provider-ibm* ]; then
+# Allow for cases where there are multiple ibm provider version in the plugins folder.
+ibm_providers=(~/.terraform.d/plugins/terraform-provider-ibm*)
+
+if [ ! -e ${ibm_providers[0]} ]; then
   echo "Downloading the IBM Terraform provider"
   curl -sLo ${dl_dir}ibm-tf-provider.zip https://github.com/IBM-Cloud/terraform-provider-ibm/releases/latest/download/${os_type}_amd64.zip
   echo "Unzipping the IBM provider binary to ~/.terraform.d/plugins/"
