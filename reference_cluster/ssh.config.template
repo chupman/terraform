@@ -5,8 +5,6 @@ Host bastion
     IdentityFile           REPLACE_WITH_PEM_PATH
     BatchMode              yes
     PasswordAuthentication no
-    UserKnownHostsFile=/dev/null
-    StrictHostKeyChecking=no
 
 Host *
     ServerAliveInterval    60
@@ -17,5 +15,3 @@ Host *
     ControlPersist         8h
     User                   ubuntu
     IdentityFile           REPLACE_WITH_PEM_PATH
-    UserKnownHostsFile=/dev/null
-    StrictHostKeyChecking=no

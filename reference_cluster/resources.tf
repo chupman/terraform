@@ -34,6 +34,17 @@ resource "ibm_compute_vm_instance" "bastion" {
     ]
   }
 
+  # On create delete conflicting entries in known hosts and add via ssh-keyscan
+  provisioner "local-exec" {
+    command = "../add_to_known_hosts.sh -a ${self.ipv4_address}"
+  }
+
+  # On destroy remove from known hosts
+  provisioner "local-exec" {
+    when = "destroy"
+    command = "../add_to_known_hosts.sh -d ${self.ipv4_address}"
+  }
+
 }
 
 #################################################

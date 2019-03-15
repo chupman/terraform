@@ -1,5 +1,6 @@
 #!/bin/bash
 os_type=$(uname -s | tr '[:upper:]' '[:lower:]')
+# Cygwin Not actually tested. Feedback from a Cygwin user is welcomed.
 if [[ $os_type == "cygwin"* ]]; then
   os_type="windows"
 fi
@@ -31,7 +32,7 @@ else
   echo "Found Terraform binary in ${tf_dir}, skipping download"
 fi
 
-# Allow for cases where there are multiple ibm provider version in the plugins folder.
+# Allow for cases where there are multiple IBM provider version in the plugins folder.
 ibm_providers=(~/.terraform.d/plugins/terraform-provider-ibm*)
 
 if [ ! -e ${ibm_providers[0]} ]; then
