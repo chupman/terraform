@@ -1,4 +1,24 @@
 ---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Run ssh-keyscan against all hosts through bastion
+      command: "ssh-keyscan {{ hostvars[item]['ansible_host'] }}"
+      register: ssh_known_host_results
+      delegate_to: bastion
+      with_items:
+        - "{{ groups['jg-cass'] }}"
+        - "{{ groups['jg-es'] }}"
+        - "{{ groups['jg-gremlin'] }}"
+      changed_when: False
+    - name: add to known_hosts
+      known_hosts:
+        path: ~/.ssh/known_hosts
+        name: "{{ hostvars[item.item]['ansible_host'] }}"
+        key: "{{ item.stdout }}"
+      with_items: "{{ ssh_known_host_results.results }}"
+
+# Hack to install python
 # - hosts: all
 #   become: yes
 #   become_user: root
