@@ -17,25 +17,28 @@ provider "ibm" {
 # provider "ibm" {}
 
 variable "datacenter_choice" {
-  description = "List of datacenters to use"
+  description = "List of data centers to use"
   default = [
     {
-      datacenter = "sjc01"
+      datacenter = "wdc04"
     },
-#    {
-#      datacenter = "sjc03"
-#    },
-#    {
-#      datacenter = "sjc04"
-#    },
-#    {
-#      datacenter = "sea01"
-#    }
+    {
+      datacenter = "sjc03"
+    },
+    {
+      datacenter = "sjc04"
+    },
+    {
+      datacenter = "dal13"
+    },
+    {
+      datacenter = "wdc07"
+    }
   ]
 }
 
 variable "ibm_sl_username" {
-  description = "IBM Cloud API username. Should be set in secrets.auto.tfvars or ENV"
+  description = "IBM Cloud API user name. Should be set in secrets.auto.tfvars or ENV"
   default = "OVERRIDE ME IN secrets.auto.tfvars"
 }
 
@@ -45,7 +48,7 @@ variable "ibm_sl_api_key" {
 }
 
 variable "ibm_bmx_api_key" {
-  description = "IBM blumix API key. Should be set in secrets.auto.tfvars or ENV"
+  description = "IBM Bluemix API key. Should be set in secrets.auto.tfvars or ENV"
   default = "please override me in secrets.auto.tfvars"
 }
 
@@ -80,7 +83,7 @@ variable "hourly_billing" {
 }
 
 # variable "prevent_destroy" {
-#   description = "Variables in lifecycle blocks are currently not supported by terraform (https://github.com/hashicorp/terraform/issues/3116) Please uncomment the lifecycle blocks in resources.tf if using monthly billing."
+#   description = "Variables in lifecycle blocks are currently not supported by Terraform (https://github.com/hashicorp/terraform/issues/3116) Please uncomment the lifecycle blocks in resources.tf if using monthly billing."
 #   default = false
 # }
 
@@ -93,7 +96,7 @@ variable "domain" {
 ###############################################################################
 
 variable "cass_os" {
-  description = "OS for Dassandra cluster nodes"
+  description = "OS for Cassandra cluster nodes"
   default = "UBUNTU_18_64"
 }
 
