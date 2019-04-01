@@ -44,7 +44,6 @@ resource "ibm_compute_vm_instance" "bastion" {
     when = "destroy"
     command = "../add_to_known_hosts.sh -d ${self.ipv4_address}"
   }
-
 }
 
 #################################################
@@ -270,5 +269,4 @@ resource "null_resource" "ansible_setup_and_run" {
       "ibm_compute_vm_instance.es",
       "ibm_compute_vm_instance.gremlin",
   ]
-
 }
