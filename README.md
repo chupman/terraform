@@ -25,7 +25,7 @@ export SL_API_KEY="sl_api_key"
 ### Credentials with Terraform variables
 `secrets.auto.tfvars` will need to be created and populated for any deployment making it a very convenient place add your IBM Cloud credentials. To get started copy `secrets.auto.tfvars.example` to `secrets.auto.tfvars` if you haven't already and fill in the values for `ibm_sl_username` and `ibm_sl_api_key`.
 
-```
+```bash
 ibm_bmx_api_key = ""
 ibm_sl_username = ""
 ibm_sl_api_key = ""
