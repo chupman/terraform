@@ -6,3 +6,6 @@ dl.bintray.com
 mirrors.service.networklayer.com
 github-*
 artifacts.elastic.co
+pypi.python.org
+pypi.org
+files.pythonhosted.org
